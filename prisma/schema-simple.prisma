@@ -1,0 +1,26 @@
+// Simplified schema for quick deployment - Google Drive images only
+// This is optional - you can deploy without database first
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Gallery images from Google Drive
+model Gallery {
+  id          String   @id @default(uuid())
+  driveId    String   @map("drive_id") // Google Drive file ID
+  imageUrl   String   @map("image_url") // Direct view URL
+  caption    String?  @db.Text
+  category   String?  // FOOD, CLOTHING, EDUCATION, etc.
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@index([category])
+  @@map("gallery")
+}
+
