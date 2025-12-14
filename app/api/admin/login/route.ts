@@ -1,9 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
-import bcrypt from 'bcryptjs'
-import jwt from 'jsonwebtoken'
+import { prisma, isDatabaseAvailable } from '@/lib/prisma'
+
+// Optional dependencies for quick deployment
+let bcrypt: any = null
+let jwt: any = null
+try {
+  bcrypt = require('bcryptjs')
+  jwt = require('jsonwebtoken')
+} catch {
+  // Dependencies not installed - admin features disabled
+}
 
 export async function POST(request: NextRequest) {
+  // Admin login disabled for quick deployment without dependencies
+  if (!bcrypt || !jwt || !isDatabaseAvailable() || !prisma) {
+    return NextResponse.json(
+      { error: 'Admin features are not enabled. Install bcryptjs and jsonwebtoken to enable admin panel.' },
+      { status: 501 }
+    )
+  }
   try {
     const body = await request.json()
     const { email, password } = body

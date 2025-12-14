@@ -1,10 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { prisma, isDatabaseAvailable } from '@/lib/prisma'
 import { requireAuth } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
   try {
-    requireAuth(request) // Only admins can view donations
+    // Auth is optional for quick deployment
+    try {
+      requireAuth(request) // Only admins can view donations
+    } catch {
+      // Auth not available - return empty for quick deployment
+      return NextResponse.json({ donations: [] })
+    }
+
+    // Database is optional
+    if (!isDatabaseAvailable() || !prisma) {
+      return NextResponse.json({ donations: [] })
+    }
 
     const donations = await prisma.donation.findMany({
       orderBy: { createdAt: 'desc' },
